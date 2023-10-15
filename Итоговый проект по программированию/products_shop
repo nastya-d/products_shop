@@ -1,0 +1,115 @@
+from pygame import *
+from random import randint
+
+# основа
+window = display.set_mode((1200, 720))
+back = transform.scale(image.load('15-13-1.jpg'), (1200, 720))
+display.set_caption('Продуктовый магазин')
+clock = time.Clock()
+
+#классы
+class GameSprite(sprite.Sprite):
+    def __init__(self, player_image, player_x, player_y, size_x, size_y, player_speed):
+        super().__init__()
+        self.image = transform.scale(image.load(player_image), (size_x, size_y))
+        self.speed = player_speed
+        self.rect = self.image.get_rect()
+        self.rect.x = player_x
+        self.rect.y = player_y
+        self.size_x = size_x
+        self.size_y = size_y
+
+    def reset(self):
+        window.blit(self.image, (self.rect.x, self.rect.y))
+
+# наследники
+class Basket(GameSprite):
+    def update(self):
+        keys_pressed = key.get_pressed()
+        if keys_pressed[K_LEFT] and self.rect.x >= 0:
+            self.rect.x -= 10
+
+        if keys_pressed[K_RIGHT] and self.rect.x <= 1135:
+            self.rect.x += 10
+
+class Products(GameSprite):
+    def update(self):
+        if self.rect.y < 720:
+            self.rect.y += self.speed
+        if self.rect.y >= 720:
+            self.rect.y = 10
+            self.rect.x = randint(0, 1135)
+            self.reset()
+
+# экземпляры
+basket = Basket('png-clipart-shopping-cart-shopping-cart-fotor-bg-remover-20231015204337.png', 50, 570, 200, 150, 5)
+
+apples = sprite.Group()
+for i in range(3):
+    apple = Products('apple-fruit-png-2040x2245_1be74e83_transparent_202e67.png.png', randint(0, 1135), 10, 75, 75, randint(1, 5))
+    apples.add(apple)
+
+bananes = sprite.Group()
+for i in range(3):
+    banana = Products('png-clipart-banana-bread-fruit-banana-cream-food-desktop-wallpaper-fotor-bg-remover-20231015204110.png', randint(0, 1135), 10, 75, 75, randint(1, 5))
+    bananes.add(banana)
+
+oranges = sprite.Group()
+for i in range(3):
+    orange = Products('png-clipart-mandarin-orange-tangerine-clementine-grapefruit-tangerine-natural-foods-food-fotor-bg-remover-20231015204510.png', randint(0, 1135), 10, 75, 75, randint(1, 5))
+    oranges.add(orange)
+
+sweets = sprite.Group()
+for i in range(3):
+    sweet = Products('png-clipart-bakery-cupcake-macaron-candy-dessert-candy-food-happy-birthday-vector-images-fotor-bg-remover-20231015203856.png', randint(0, 1135), 10, 75, 75, randint(1, 5))
+    sweets.add(sweet)
+
+# надписи
+font.init()
+font = font.Font(None, 50)
+win = font.render('ПОБЕДА!', True, (0, 0, 0))
+lose = font.render('ПОПРОБУЙ ЕЩЁ РАЗ!', True, (0, 0, 0))
+
+# константы
+game = True
+finish = False
+count = 0
+
+# игра
+while game:
+    for e in event.get():
+        if e.type == QUIT:
+            game = False
+
+    if finish != True:
+        window.blit(back, (0, 0))
+
+        basket.update()
+        basket.reset()
+
+        apples.update()
+        apples.draw(window)
+
+        bananes.update()
+        bananes.draw(window)
+
+        oranges.update()
+        oranges.draw(window)
+
+        sweets.update()
+        sweets.draw(window)
+
+        if sprite.spritecollide(basket, apples, True) or sprite.spritecollide(basket, oranges, True) or sprite.spritecollide(basket, bananes, True):
+            count += 1
+
+        if sprite.spritecollide(basket, sweets, True):
+            window.blit(lose, (400, 100))
+            finish = True
+
+        if count == 9:
+            window.blit(win, (500, 100))
+            finish = True
+
+    display.update()
+    clock.tick(60)
+    
